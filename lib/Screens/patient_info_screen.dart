@@ -208,6 +208,8 @@ class _SignUpAlertDialogState extends State<SignUpAlertDialog> {
         'ConsultDr': '',
         'Ward': '',
         'Bed': '',
+        'appointNumber': '',
+        'doctorNumber': '',
         'imageUrl': '',
       });
 

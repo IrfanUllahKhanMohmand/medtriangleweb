@@ -70,7 +70,7 @@ class _MedicalInfoFormState extends State<MedicalInfoForm> {
   Future<void> updateFirestoreDocument() async {
     try {
       await FirebaseFirestore.instance
-          .collection('medical_info')
+          .collection('medicalinfo')
           .doc(widget.docId) // Replace 'patient_id' with the actual patient ID
           .update({
         'Name': _nameController.text,

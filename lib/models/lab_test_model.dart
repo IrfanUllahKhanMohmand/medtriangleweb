@@ -2,14 +2,15 @@ class LabTestModel {
   String id;
   String name;
   String date; // New field for date
-  String result; // New field for result
+  String result;
+  String imageUrl; // New field for result
 
-  LabTestModel({
-    required this.id,
-    required this.name,
-    required this.date,
-    required this.result,
-  });
+  LabTestModel(
+      {required this.id,
+      required this.name,
+      required this.date,
+      required this.result,
+      required this.imageUrl});
 
   factory LabTestModel.fromJson(Map<String, dynamic> json) {
     return LabTestModel(
@@ -17,6 +18,7 @@ class LabTestModel {
       name: json['Name'] ?? '',
       date: json['Date'] ?? '',
       result: json['Result'] ?? '',
+      imageUrl: json['imageUrl'] ?? '',
     );
   }
 
@@ -26,6 +28,7 @@ class LabTestModel {
       'Name': name,
       'Date': date,
       'Result': result,
+      'imageUrl': imageUrl
     };
   }
 }

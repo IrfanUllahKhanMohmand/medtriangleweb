@@ -1,3 +1,5 @@
+import 'package:file_picker/file_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -14,7 +16,11 @@ class LabTestForm extends StatefulWidget {
 
 class _LabTestFormState extends State<LabTestForm> {
   final _formKey = GlobalKey<FormState>();
-  List<LabTestModel> labTests = []; // List to store the fetched lab test data
+  List<LabTestModel> labTests = [];
+  final TextEditingController _imageUrlController = TextEditingController();
+
+  PlatformFile? _selectedImage;
+  String? _uploadedImageUrl; // List to store the fetched lab test data
 
   @override
   void initState() {
@@ -58,6 +64,43 @@ class _LabTestFormState extends State<LabTestForm> {
           );
         },
       );
+    }
+  }
+
+  void _selectImage() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+      allowMultiple: false,
+    );
+
+    if (result != null && result.files.isNotEmpty) {
+      setState(() {
+        _selectedImage = result.files.first;
+      });
+    }
+  }
+
+  Future<String?> _uploadImage() async {
+    if (_selectedImage != null) {
+      final fileName = '${DateTime.now().millisecondsSinceEpoch}.png';
+      final destination = 'images/$fileName';
+      final storageRef = FirebaseStorage.instance.ref().child(destination);
+      final UploadTask uploadTask = storageRef.putData(_selectedImage!.bytes!);
+
+      uploadTask.whenComplete(() => null).then((TaskSnapshot snapshot) async {
+        if (snapshot.state == TaskState.success) {
+          final downloadUrl = await storageRef.getDownloadURL();
+          setState(() {
+            _uploadedImageUrl = downloadUrl;
+          });
+
+          return _uploadedImageUrl;
+        } else {
+          // Handle error during image upload
+          print('Error uploading image');
+        }
+      });
+      return _uploadedImageUrl;
     }
   }
 
@@ -123,7 +166,49 @@ class _LabTestFormState extends State<LabTestForm> {
                         labTests[i].result = value ?? '';
                       },
                     ),
-                    const SizedBox(height: 20)
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Column(
+                          children: [
+                            Container(
+                              width: 200,
+                              height: 200,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.rectangle,
+                                image: _selectedImage != null
+                                    ? DecorationImage(
+                                        image:
+                                            MemoryImage(_selectedImage!.bytes!),
+                                        fit: BoxFit.cover,
+                                      )
+                                    : _uploadedImageUrl != null
+                                        ? DecorationImage(
+                                            image: NetworkImage(
+                                                _uploadedImageUrl!),
+                                            fit: BoxFit.cover,
+                                          )
+                                        : labTests[i].imageUrl.isNotEmpty
+                                            ? DecorationImage(
+                                                image: NetworkImage(
+                                                    labTests[i].imageUrl),
+                                                fit: BoxFit.cover,
+                                              )
+                                            : null,
+                              ),
+                            ),
+                            TextButton.icon(
+                              onPressed: () {
+                                _selectImage();
+                              },
+                              icon: Icon(Icons.camera_alt),
+                              label: Text('Select Image'),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ],
                 ),
 
@@ -137,16 +222,34 @@ class _LabTestFormState extends State<LabTestForm> {
 
                     // Update the lab test data in Firestore
                     for (int i = 0; i < labTests.length; i++) {
-                      await FirebaseFirestore.instance
-                          .collection('labtests')
-                          .doc(widget.docId)
-                          .collection('reports')
-                          .doc(labTests[i].id)
-                          .update({
-                        'Name': labTests[i].name,
-                        'Date': labTests[i].date, // Save the date field
-                        'Result': labTests[i].result, // Save the result field
-                      });
+                      String? downloadUrl = await _uploadImage();
+
+                      if (downloadUrl != null) {
+                        await FirebaseFirestore.instance
+                            .collection('labtests')
+                            .doc(widget.docId)
+                            .collection('reports')
+                            .doc(labTests[i].id)
+                            .update({
+                          'Name': labTests[i].name,
+                          'Date': labTests[i].date,
+                          'Result': labTests[i].result,
+                          'imageUrl': downloadUrl,
+                        });
+                      } else {
+                        // Handle error or show a message indicating image upload failure
+                        await FirebaseFirestore.instance
+                            .collection('labtests')
+                            .doc(widget.docId)
+                            .collection('reports')
+                            .doc(labTests[i].id)
+                            .update({
+                          'Name': labTests[i].name,
+                          'Date': labTests[i].date,
+                          'Result': labTests[i].result,
+                          'imageUrl': '',
+                        });
+                      }
                     }
 
                     // Show a success message or navigate to the next screen

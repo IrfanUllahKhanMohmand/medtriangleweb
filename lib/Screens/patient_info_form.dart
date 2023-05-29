@@ -26,6 +26,9 @@ class _PatientFormState extends State<PatientForm> {
   final TextEditingController _consultDrController = TextEditingController();
   final TextEditingController _wardController = TextEditingController();
   final TextEditingController _bedController = TextEditingController();
+  final TextEditingController _appointNumberController =
+      TextEditingController();
+  final TextEditingController _doctorNumberController = TextEditingController();
   final TextEditingController _imageUrlController = TextEditingController();
 
   PlatformFile? _selectedImage;
@@ -58,6 +61,8 @@ class _PatientFormState extends State<PatientForm> {
         _consultDrController.text = data['ConsultDr'] ?? '';
         _wardController.text = data['Ward'] ?? '';
         _bedController.text = data['Bed'] ?? '';
+        _appointNumberController.text = data['appointNumber'] ?? '';
+        _doctorNumberController.text = data['doctorNumber'] ?? '';
         _imageUrlController.text = data['imageUrl'] ?? '';
       }
       setState(() {});
@@ -96,6 +101,8 @@ class _PatientFormState extends State<PatientForm> {
         'ConsultDr': _consultDrController.text,
         'Ward': _wardController.text,
         'Bed': _bedController.text,
+        'appointNumber': _appointNumberController.text,
+        'doctorNumber': _doctorNumberController.text,
         'imageUrl': downloadUrl,
       };
 
@@ -317,6 +324,30 @@ class _PatientFormState extends State<PatientForm> {
                   controller: _bedController,
                   decoration: const InputDecoration(
                     labelText: 'Bed',
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter a bed number';
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: _appointNumberController,
+                  decoration: const InputDecoration(
+                    labelText: 'Appointment Number',
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter a bed number';
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: _doctorNumberController,
+                  decoration: const InputDecoration(
+                    labelText: 'Doctor Contact Number',
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {

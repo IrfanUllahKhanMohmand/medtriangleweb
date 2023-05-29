@@ -10,6 +10,8 @@ class PatientInfoModel {
   String consultDr;
   String ward;
   String bed;
+  String appointNumber;
+  String doctorNumber;
   String imageUrl;
 
   PatientInfoModel(
@@ -24,6 +26,8 @@ class PatientInfoModel {
       required this.consultDr,
       required this.ward,
       required this.bed,
+      required this.appointNumber,
+      required this.doctorNumber,
       required this.imageUrl});
 
   factory PatientInfoModel.fromJson(Map<String, dynamic> json) {
@@ -39,6 +43,8 @@ class PatientInfoModel {
       consultDr: json['ConsultDr'],
       ward: json['Ward'],
       bed: json['Bed'],
+      appointNumber: json['appointNumber'],
+      doctorNumber: json['doctorNumber'],
       imageUrl: json['imageUrl'],
     );
   }
@@ -56,6 +62,8 @@ class PatientInfoModel {
       'ConsultDr': consultDr,
       'Ward': ward,
       'Bed': bed,
+      'appointNumber': appointNumber,
+      'doctorNumber': doctorNumber,
       'imageUrl': imageUrl
     };
   }
