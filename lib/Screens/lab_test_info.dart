@@ -222,23 +222,42 @@ class _LabTestFormState extends State<LabTestForm> {
 
                     // Update the lab test data in Firestore
                     for (int i = 0; i < labTests.length; i++) {
-                      String? downloadUrl = await _uploadImage();
+                      if (_selectedImage != null) {
+                        final fileName =
+                            '${DateTime.now().millisecondsSinceEpoch}.png';
+                        final destination = 'images/$fileName';
+                        final storageRef =
+                            FirebaseStorage.instance.ref().child(destination);
+                        final UploadTask uploadTask =
+                            storageRef.putData(_selectedImage!.bytes!);
 
-                      if (downloadUrl != null) {
-                        await FirebaseFirestore.instance
-                            .collection('labtests')
-                            .doc(widget.docId)
-                            .collection('reports')
-                            .doc(labTests[i].id)
-                            .update({
-                          'Name': labTests[i].name,
-                          'Date': labTests[i].date,
-                          'Result': labTests[i].result,
-                          'imageUrl': downloadUrl,
+                        await uploadTask.whenComplete(() async {
+                          if (uploadTask.snapshot.state == TaskState.success) {
+                            final downloadUrl =
+                                await storageRef.getDownloadURL();
+
+                            setState(() {
+                              _uploadedImageUrl = downloadUrl;
+                            });
+
+                            await FirebaseFirestore.instance
+                                .collection('labtests')
+                                .doc(widget.docId)
+                                .collection('reports')
+                                .doc(labTests[i].id)
+                                .update({
+                              'Name': labTests[i].name,
+                              'Date': labTests[i].date,
+                              'Result': labTests[i].result,
+                              'imageUrl': _uploadedImageUrl,
+                            });
+                          } else {
+                            // Handle error during image upload
+                          }
                         });
                       } else {
-                        // Handle error or show a message indicating image upload failure
-                        await FirebaseFirestore.instance
+                        // Handle case when _selectedImage is null
+                        FirebaseFirestore.instance
                             .collection('labtests')
                             .doc(widget.docId)
                             .collection('reports')
